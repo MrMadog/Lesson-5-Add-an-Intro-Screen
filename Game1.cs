@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 using System;
 
 namespace Lesson_5___Add_an_Intro_Screen
@@ -10,9 +11,9 @@ namespace Lesson_5___Add_an_Intro_Screen
 
         Random generator = new Random();
 
-        Texture2D tribbleGreyTexture, tribbleBrownTexture, tribbleCreamTexture, tribbleOrangeTexture, tribbleIntroTexture;
+        Texture2D tribbleGreyTexture, tribbleBrownTexture, tribbleCreamTexture, tribbleOrangeTexture, tribbleIntroTexture, exitButtonTexture;
 
-        Rectangle tribbleGreyRect, tribbleBrownRect, tribbleCreamRect, tribbleOrangeRect;
+        Rectangle tribbleGreyRect, tribbleBrownRect, tribbleCreamRect, tribbleOrangeRect, exitButtonRect;
 
         Vector2 tribbleGreySpeed, tribbleBrownSpeed, tribbleCreamSpeed, tribbleOrangeSpeed;
 
@@ -21,7 +22,9 @@ namespace Lesson_5___Add_an_Intro_Screen
         int randomX, randomY, randomBrownXSpeed, randomBrownYSpeed, bounceCount;
         int randomGreyX, randomGreyY, randomBrownStartXSpeed, randomBrownStartYSpeed;
 
-        SpriteFont introFont, titleFont, scoreFont;
+        SpriteFont introFont, titleFont, scoreFont, warningFont, exitFont;
+
+        Song introSong, gameSong, endSong;
 
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
@@ -29,7 +32,8 @@ namespace Lesson_5___Add_an_Intro_Screen
         enum Screen
         {
             Intro,
-            TribbleYard
+            TribbleYard,
+            End
         }
 
         Screen screen;
@@ -61,6 +65,8 @@ namespace Lesson_5___Add_an_Intro_Screen
             tribbleCreamRect = new Rectangle(randomX, randomY, 100, 100);
             tribbleOrangeRect = new Rectangle(randomX, randomY, 100, 100);
 
+            exitButtonRect = new Rectangle(750, 25, 22, 18);
+
             tribbleGreySpeed = new Vector2(2, 2);
             tribbleBrownSpeed = new Vector2(randomBrownStartXSpeed, randomBrownStartYSpeed);
             tribbleCreamSpeed = new Vector2(5, 0);
@@ -86,28 +92,40 @@ namespace Lesson_5___Add_an_Intro_Screen
             tribbleOrangeTexture = Content.Load<Texture2D>("tribbleOrange");
             tribbleIntroTexture = Content.Load<Texture2D>("tribble_intro");
 
+            exitButtonTexture = Content.Load<Texture2D>("X");
+
             introFont = Content.Load<SpriteFont>("intro_instruction");
             titleFont = Content.Load<SpriteFont>("titleFont");
             scoreFont = Content.Load<SpriteFont>("score_counter");
+            warningFont = Content.Load<SpriteFont>("warning");
+            exitFont = Content.Load<SpriteFont>("exit");
+
+            introSong = Content.Load<Song>("intro_music");
+            gameSong = Content.Load<Song>("game_music");
+            endSong = Content.Load<Song>("end_music");
         }
 
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
 
             // TODO: Add your update logic here
-
-
+    // INTRO SCREEN
             if (screen == Screen.Intro)
             {
+                MediaPlayer.Play(introSong);
+
                 if (Keyboard.GetState().IsKeyDown(Keys.Space))
                     screen = Screen.TribbleYard;
 
+                if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+                    Exit();
             }
-            //mouseState.LeftButton == ButtonState.Pressed
+
+    // TRIBBLE YARD SCREEN
             else if (screen == Screen.TribbleYard)
             {
+                MediaPlayer.Play(gameSong);
+
                 // TRIBBLE MOVEMENT
                 tribbleGreyRect.X += (int)tribbleGreySpeed.X;
                 tribbleGreyRect.Y += (int)tribbleGreySpeed.Y;
@@ -137,7 +155,6 @@ namespace Lesson_5___Add_an_Intro_Screen
                     tribbleGreySpeed.Y = generator.Next(1, 6);
                     tribbleGreySpeed.X *= -1;
                     backColor = Color.Gray;
-                    bounceCount += 1;
                 }
                 if (tribbleGreyRect.Bottom > _graphics.PreferredBackBufferHeight || tribbleGreyRect.Top < 0)
                 {
@@ -147,7 +164,6 @@ namespace Lesson_5___Add_an_Intro_Screen
                     tribbleGreySpeed.Y = generator.Next(1, 6);
                     tribbleGreySpeed.Y *= -1;
                     backColor = Color.Gray;
-                    bounceCount += 1;
                 }
                 //brown
                 if (tribbleBrownRect.Left > _graphics.PreferredBackBufferWidth || tribbleBrownRect.Right < 0)
@@ -158,7 +174,6 @@ namespace Lesson_5___Add_an_Intro_Screen
                         tribbleBrownRect.X = 800;
                     tribbleBrownSpeed.X = randomBrownXSpeed;
                     backColor = Color.SaddleBrown;
-                    bounceCount += 1;
                 }
                 if (tribbleBrownRect.Top > _graphics.PreferredBackBufferHeight || tribbleBrownRect.Bottom < 0)
                 {
@@ -168,7 +183,6 @@ namespace Lesson_5___Add_an_Intro_Screen
                         tribbleBrownRect.Y = 600;
                     tribbleBrownSpeed.Y = randomBrownYSpeed;
                     backColor = Color.SaddleBrown;
-                    bounceCount += 1;
                 }
                 //cream
                 if (tribbleCreamRect.Right > _graphics.PreferredBackBufferWidth || tribbleCreamRect.Left < 0)
@@ -202,6 +216,24 @@ namespace Lesson_5___Add_an_Intro_Screen
                     scoreColor = Color.White;
                 else 
                     scoreColor = Color.Black;
+
+                if (bounceCount == 10)
+                {
+                    screen = Screen.End;
+                }
+
+                if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+                    Exit();
+            }
+    // END SCREEN
+            else if (screen == Screen.End)
+            {
+                MediaPlayer.Play(endSong);
+
+                if (Keyboard.GetState().IsKeyDown(Keys.Space))
+                {
+                    Exit();
+                }
             }
 
             base.Update(gameTime);
@@ -220,6 +252,9 @@ namespace Lesson_5___Add_an_Intro_Screen
                 _spriteBatch.Draw(tribbleIntroTexture, new Rectangle(0, 0, 800, 600), Color.White);
                 _spriteBatch.DrawString(introFont, "Press SPACE to continue", new Vector2(190, 530), Color.White);
                 _spriteBatch.DrawString(titleFont, "Tribble Time", new Vector2(50, 100), Color.White);
+                _spriteBatch.DrawString(warningFont, "*Flash Warning*", new Vector2(50, 215), Color.White);
+                _spriteBatch.Draw(exitButtonTexture, exitButtonRect, Color.Black);
+                _spriteBatch.DrawString(exitFont, "esc", new Vector2(705, 18), Color.Black);
             }
 
             else if (screen == Screen.TribbleYard)
@@ -229,6 +264,15 @@ namespace Lesson_5___Add_an_Intro_Screen
                 _spriteBatch.Draw(tribbleCreamTexture, tribbleCreamRect, Color.White);
                 _spriteBatch.Draw(tribbleOrangeTexture, tribbleOrangeRect, Color.White);
                 _spriteBatch.DrawString(scoreFont, $"bounces: {bounceCount}", new Vector2(50, 20), scoreColor);
+                _spriteBatch.Draw(exitButtonTexture, exitButtonRect, Color.Black);
+                _spriteBatch.DrawString(exitFont, "esc", new Vector2(710, 19), Color.Black);
+            }
+
+            else if (screen == Screen.End)
+            {
+                backColor = Color.DarkGray;
+                _spriteBatch.DrawString(titleFont, "Game Over", new Vector2(50, 100), Color.White);
+                _spriteBatch.DrawString(introFont, "Press SPACE to exit", new Vector2(220, 530), Color.White);
             }
 
             _spriteBatch.End();
