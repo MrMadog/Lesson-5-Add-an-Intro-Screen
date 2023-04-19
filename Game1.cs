@@ -78,6 +78,9 @@ namespace Lesson_5___Add_an_Intro_Screen
             scoreColor = Color.Black;
 
             base.Initialize();
+            MediaPlayer.Play(introSong);
+
+
         }
 
         protected override void LoadContent()
@@ -112,10 +115,11 @@ namespace Lesson_5___Add_an_Intro_Screen
     // INTRO SCREEN
             if (screen == Screen.Intro)
             {
-                MediaPlayer.Play(introSong);
-
                 if (Keyboard.GetState().IsKeyDown(Keys.Space))
+                {
+                    MediaPlayer.Stop();
                     screen = Screen.TribbleYard;
+                }
 
                 if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                     Exit();
@@ -124,7 +128,9 @@ namespace Lesson_5___Add_an_Intro_Screen
     // TRIBBLE YARD SCREEN
             else if (screen == Screen.TribbleYard)
             {
-                MediaPlayer.Play(gameSong);
+                if (MediaPlayer.State == MediaState.Stopped)
+                    MediaPlayer.Play(gameSong); 
+
 
                 // TRIBBLE MOVEMENT
                 tribbleGreyRect.X += (int)tribbleGreySpeed.X;
@@ -220,6 +226,7 @@ namespace Lesson_5___Add_an_Intro_Screen
                 if (bounceCount == 10)
                 {
                     screen = Screen.End;
+                    MediaPlayer.Stop();
                 }
 
                 if (Keyboard.GetState().IsKeyDown(Keys.Escape))
@@ -228,7 +235,8 @@ namespace Lesson_5___Add_an_Intro_Screen
     // END SCREEN
             else if (screen == Screen.End)
             {
-                MediaPlayer.Play(endSong);
+                if (MediaPlayer.State == MediaState.Stopped)
+                    MediaPlayer.Play(endSong);
 
                 if (Keyboard.GetState().IsKeyDown(Keys.Space))
                 {
